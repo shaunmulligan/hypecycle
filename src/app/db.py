@@ -27,5 +27,14 @@ notes = Table(
     Column("created_date", DateTime, default=func.now(), nullable=False),
 )
 
+sensors = Table(
+    "sensors",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("name", String(50)),
+    Column("address", String(50)),
+    Column("created_date", DateTime, default=func.now(), nullable=False),
+)
+
 # databases query builder
 database = Database(DATABASE_URL)
