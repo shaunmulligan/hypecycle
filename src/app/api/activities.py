@@ -15,16 +15,11 @@ async def get_current_activity():
     return activity
 
 @router.post("/", response_model=ActivityDB, status_code=201)
-async def create_activity(payload: ActivitySchema):
-    activity_id = await crud.post(payload)
-
-    response_object = {
-        "id": activity_id,
-        "active": payload.active,
-        "start_time": payload.start_time,
-        "end_time": payload.end_time,
-    }
-    return response_object
+async def create_activity():
+    activity = await crud.post()
+    if not activity:
+        raise HTTPException(status_code=404, detail="activity not found")
+    return activity
 
 
 @router.get("/{id}/", response_model=ActivityDB)
