@@ -16,3 +16,11 @@ class SensorSchema(BaseModel):
 
 class SensorDB(SensorSchema):
     id: int
+
+class HrReadingSchema(BaseModel):
+    bpm: int
+    activity_id: int
+
+class HrReadingDB(HrReadingSchema):
+    id: int
+    timestamp: datetime

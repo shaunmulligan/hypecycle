@@ -8,6 +8,7 @@ from sqlalchemy import (
     String,
     Table,
     Boolean,
+    ForeignKey,
     create_engine
 )
 from sqlalchemy.sql import func
@@ -35,6 +36,14 @@ sensors = Table(
     Column("name", String(50)),
     Column("address", String(50)),
     Column("created_date", DateTime(timezone=True), default=func.now(), nullable=False),
+)
+
+hr_readings = Table(
+    'hr_readings', metadata,
+    Column('id', Integer, primary_key=True),
+    Column('timestamp', DateTime(timezone=True), nullable=False, index=True),
+    Column('activity_id', Integer, ForeignKey("activities.id"), nullable=False),
+    Column('bpm', Integer)
 )
 
 # databases query builder
