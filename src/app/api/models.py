@@ -1,12 +1,13 @@
 from pydantic import BaseModel, Field
+from typing import Optional
+from datetime import datetime
 
+class ActivitySchema(BaseModel):
+    active: bool
+    start_time: datetime
+    end_time: Optional[datetime] = Field(...)
 
-class NoteSchema(BaseModel):
-    title: str = Field(..., min_length=3, max_length=50)
-    description: str = Field(..., min_length=3, max_length=50)
-
-
-class NoteDB(NoteSchema):
+class ActivityDB(ActivitySchema):
     id: int
 
 class SensorSchema(BaseModel):
