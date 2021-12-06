@@ -13,8 +13,17 @@ async def post():
     query = activities.select().where(rec == activities.c.id)
     return await database.fetch_one(query=query)
 
-async def stop_activity():
-    pass
+async def stop_current():
+    current_activity = await get_current()
+    if current_activity is None:
+        return None
+    query = "UPDATE activities SET active = :active, end_time = :end_time WHERE id = :id"
+    values = {"active": False, "end_time": datetime.now(timezone.utc), "id": current_activity['id']}
+    await database.execute(query=query, values=values)
+    # Return the id of the new record and we send back the record to the client.
+    query = activities.select().where(current_activity['id'] == activities.c.id)
+    return await database.fetch_one(query=query)
+
 
 async def get(id: int):
     query = activities.select().where(id == activities.c.id)
@@ -23,7 +32,6 @@ async def get(id: int):
 async def get_current():
     query = activities.select().where(activities.c.active == True)
     rec = await database.fetch_one(query=query)
-    print(dict(rec.items()))
     return rec
 
 async def get_all():

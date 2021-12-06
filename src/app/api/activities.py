@@ -14,6 +14,13 @@ async def get_current_activity():
         raise HTTPException(status_code=404, detail="activity not found")
     return activity
 
+@router.put("/current/stop", response_model=ActivityDB)
+async def stop_current_activity():
+    activity = await crud.stop_current()
+    if not activity:
+        raise HTTPException(status_code=404, detail="activity not found")
+    return activity
+
 @router.post("/", response_model=ActivityDB, status_code=201)
 async def create_activity():
     activity = await crud.post()
