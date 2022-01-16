@@ -1,7 +1,9 @@
-import time, sys, asyncio
+import time, sys, os, datetime
 import app.api.gps_crud as gps_crud
 import app.api.activity_crud as activity_crud
 from app.api.models import GpsReadingSchema
+import sqlalchemy as db
+
 try:
     import board
     import adafruit_gps
@@ -9,6 +11,7 @@ except RuntimeError as e:
     print("GPS not available: {}".format(e))
     sys.exit(1)
 
+UPDATE_RATE = os.environ.get('UPDATE_RATE', 5)
 
 def format_dop(dop):
     # https://en.wikipedia.org/wiki/Dilution_of_precision_(navigation)
@@ -45,6 +48,12 @@ class Location:
         self.altitude = None
         self.speed = None
         self.timestamp = time.localtime()
+        DATABASE_URL = os.getenv("DATABASE_URL")
+        engine = db.create_engine(DATABASE_URL)
+        self.connection = engine.connect()
+        metadata = db.MetaData()
+        self.activities = db.Table('activities', metadata, autoload=True, autoload_with=engine)
+        self.gps_readings = db.Table('gps_readings', metadata, autoload=True, autoload_with=engine)
 
         # Todo: make i2c bus configurable
         i2c = board.I2C()
@@ -61,6 +70,7 @@ class Location:
 
     def monitor_gps(self, event):
         '''Read in NMEA sentences and update location instance attributes'''
+        last_print = time.monotonic()
         while True:
             if event.is_set():
                 print("GPS event set")
@@ -72,39 +82,50 @@ class Location:
                 time.sleep(0.2)
                 continue
             # print(self.gps.nmea_sentence)
-            if self.gps.has_fix:
-                if self.gps.nmea_sentence[3:6] == "GSA":
-                    print(f"{self.gps.latitude:.6f}, {self.gps.longitude:.6f} {self.gps.altitude_m}m")
-                    print(f"2D Fix: {self.gps.has_fix}  3D Fix: {self.gps.has_3d_fix}")
-                    print(f"  PDOP (Position Dilution of Precision): {format_dop(self.gps.pdop)}")
-                    print(f"  HDOP (Horizontal Dilution of Precision): {format_dop(self.gps.hdop)}")
-                    print(f"  VDOP (Vertical Dilution of Precision): {format_dop(self.gps.vdop)}")
-                    # Time & date from GPS informations
-                    print("Fix timestamp: {}".format(_format_datetime(self.gps.timestamp_utc)))
-                    self.fix = self.gps.has_fix
-                    self.fix_3d = self.gps.has_3d_fix
-                    self.latitude = self.gps.latitude
-                    self.longitude = self.gps.longitude
-                    self.altitude = self.gps.altitude_m
-                    self.timestamp = self.gps.timestamp_utc
-                    # self.speed = self.gps.speed_knots * 1.852
- 
-                    print("Reading GPS")
-                    current_activity = activity_crud.get_current_sync()
-                    if current_activity is None:
-                        print("No active ride. Not recording")
-                    else:
-                        current_activity_id = current_activity['id']
-                        print("Current Activity ID: ", current_activity_id)
-                        # print("Current HR = ", current_hr)
-                        # if current_activity is not None:
-                        #     reading = HrReadingSchema(
-                        #         activity_id=current_activity_id,
-                        #         bpm=current_hr
-                        #     )
-                        #     await readings_crud.insert(reading)
-            else:
-                print("No GPS fix")
-                self.fix = False
+            # Every second print out current location details if there's a fix.
+            current = time.monotonic()
+            if current - last_print >= UPDATE_RATE:
+                last_print = current
+                if self.gps.has_fix:
+                    if self.gps.nmea_sentence[3:6] == "GSA":
+                        print(f"{self.gps.latitude:.6f}, {self.gps.longitude:.6f} {self.gps.altitude_m}m")
+                        print(f"2D Fix: {self.gps.has_fix}  3D Fix: {self.gps.has_3d_fix}")
+                        print(f"  PDOP (Position Dilution of Precision): {format_dop(self.gps.pdop)}")
+                        print(f"  HDOP (Horizontal Dilution of Precision): {format_dop(self.gps.hdop)}")
+                        print(f"  VDOP (Vertical Dilution of Precision): {format_dop(self.gps.vdop)}")
+                        # Time & date from GPS informations
+                        print("Fix timestamp: {}".format(_format_datetime(self.gps.timestamp_utc)))
+                        self.fix = self.gps.has_fix
+                        self.fix_3d = self.gps.has_3d_fix
+                        self.latitude = self.gps.latitude
+                        self.longitude = self.gps.longitude
+                        self.altitude = self.gps.altitude_m
+                        self.timestamp = self.gps.timestamp_utc
+                        # self.speed = self.gps.speed_knots * 1.852
+    
+                        print("Reading GPS")
+                        # Check that we have an active ride going on
+                        query = db.select([self.activities]).where(self.activities.columns.active == True)
+                        result = self.connection.execute(query)
+                        current_activity = result.fetchone()
+                        if current_activity is None:
+                            print("No active ride. Not recording")
+                        else:
+                            current_activity_id = current_activity['id']
+                            print("Current Activity ID: ", current_activity_id)
+                            # Insert into DB with raw sqlachemy query because couldn't get it to
+                            # work with the asyncio crud stuff.
+                            query = db.insert(self.gps_readings).values(
+                                activity_id=current_activity['id'],
+                                latitude=self.gps.latitude,
+                                longitude=self.gps.longitude,
+                                timestamp=datetime.datetime.now(),
+                                speed=self.gps.speed_knots*1.852,
+                                altitude=self.gps.altitude_m,
+                            )
+                            self.connection.execute(query)
+                else:
+                    print("No GPS fix")
+                    self.fix = False
             
         print("GPS thread stopped")
