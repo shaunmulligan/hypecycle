@@ -1,4 +1,4 @@
-# Hypecycle
+# Hypecycle [Work In Progress]
 
 An over engineered cycling computer using web tech. The plan is to create a semi-useable, battery powered cycling computer. The goal is not to make the ultimate cycle computer, but rather to learn new technologies and build something that is useful and fun.
 
@@ -17,7 +17,7 @@ Using the following technologies:
 - svelte.js + ionic framework for the frontend
 - balena cloud for easy deployment (later maybe)
 
-### Feature Set
+### Desired Feature Set
 - Base Features:
     - Bluetooth LE sensor support
         - 4iii: speed, cadence, and power
@@ -33,6 +33,13 @@ Using the following technologies:
     - Upload ride to Garmin Connect or Strava when connected to wifi.
     - Offline Maps with route and elevation data
     - Front facing LED lighting (neopixel??)
+    - Physical Button for:
+        - Start/stop activity
+        - Lap
+        - Power on/off
+    - Wireless charging
+    - Bluetooth internet tethering to phone
+    - Control screen brightness
 - Stretch Goals:
     - ANT+ support 
         - 4iii: speed, cadence, and power
@@ -42,29 +49,21 @@ Using the following technologies:
         - acceleration, gyro, and magnetometer
         - temperature
 
-## Todo:
-
-- [ ] Start BLE sensors from registered devices list in DB
-- [ ] app.ble.sensor needs to support HRM, Power, Cadence readings
-- [ ] app.ble.sensor needs to periodically retry.
-- [ ] Add tables for Power, Cadence
-- [ ] Add table for location
-- [ ] Add table for altitude, temperature, humidity
-- [ ] Periodically restart `bluetoothd` to clear cache so CPU doesn't get consumed as per https://github.com/hbldh/bleak/issues/500 maybe just with something like https://newbedev.com/how-can-i-configure-a-systemd-service-to-restart-periodically
-
 ## Usage
 To launch chrome pointing at frontend server:
 ```
-DISPLAY=:0 chromium-browser --kiosk http://192.168.86.38:5000
+DISPLAY=:0 chromium-browser --kiosk http://localhost:5000
 ```
 To start frontend server:
 ```
-cd fronend && npm start
+cd frontend/public && python3 -m http.server
 ```
 To start backend server:
 ```
 bash launch.sh
 ```
+
+API documentation can be found at localhost:5000/docs when the backend is running.
 
 ## Calculate distance from two lat/long coordinates
 https://www.movable-type.co.uk/scripts/latlong.html
