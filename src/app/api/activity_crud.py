@@ -59,11 +59,3 @@ async def put(id: int, payload: ActivitySchema):
 async def delete(id: int):
     query = activities.delete().where(id == activities.c.id)
     return await database.execute(query=query)
-
-def get_current_sync() -> ActivitySchema:
-    # Todo: make sure we have at least one activity
-    session = get_session()
-    activity = session.query(ActivitySchema).filter(ActivitySchema.is_active == True).first()
-    if activity is None:
-        activity = session.query(ActivitySchema).order_by(ActivitySchema.activity_id.desc()).first()
-    return activity

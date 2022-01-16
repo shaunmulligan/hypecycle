@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import asyncio, os, threading
 from app.api import activities, ping, sensors
+from app.api import data_routes as data
 from app.db import database, engine, metadata
 from app.ble import sensor as ble
 from app.location import gps
@@ -36,3 +37,4 @@ async def shutdown():
 app.include_router(ping.router)
 app.include_router(activities.router, prefix="/activities", tags=["activities"])
 app.include_router(sensors.router, prefix="/sensors", tags=["sensors"])
+app.include_router(data.router, prefix="/data", tags=["data"])
