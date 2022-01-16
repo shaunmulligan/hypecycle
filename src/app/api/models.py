@@ -24,3 +24,14 @@ class HrReadingSchema(BaseModel):
 class HrReadingDB(HrReadingSchema):
     id: int
     timestamp: datetime
+
+class GpsReadingSchema(BaseModel):
+    latitude: float
+    longitude: float
+    altitude: float
+    speed: float
+    activity_id: int
+
+class GpsReadingDB(GpsReadingSchema):
+    id: int
+    timestamp: datetime

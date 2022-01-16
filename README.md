@@ -1,6 +1,43 @@
 # Hypecycle
 
-An over engineered cycling computer using web tech.
+An over engineered cycling computer using web tech. The plan is to create a useable, battery powered cycling computer. The goal is not to make the ultimate cycle computer, but rather to learn new technologies and build something that is useful and fun.
+
+### Hardware
+- Raspberry Pi Zero 2 W
+- Hyperpixel 4.0 LCD
+- Adafruit Mini GPS PA1010D
+- Adafruit Blinka MCP2221 for i2c, button, adc
+- PowerBoost 1000 LiPo Charger 5V 1A Boost
+- RPi mini camera (not yet working on debian bullseye)
+
+### Software
+Using the following technologies:
+- Python3 + FastAPI for the backend
+- svelte.js + ionic framework for the frontend
+- balena cloud for easy deployment (later maybe)
+
+### Feature Set
+- Basics:
+    - Bluetooth LE sensor support
+        - 4iii: speed, cadence, and power
+        - Garmin HRM: Heart rate
+    - GPS tracking
+        - Lat, Lon
+        - Altitude
+        - Speed
+        - Direction
+        - Quick TTFF using https://github.com/gtjoseph/mt3339-utils 
+    - Save ride to GPX file
+    - Sync ride to Garmin Connect or Strava when connected to wifi.
+- Stretch
+    - Offline Maps Navigation
+    - ANT+ support 
+        - 4iii: speed, cadence, and power
+        - Garmin HRM: Heart rate
+    - Orientation via BNO055
+        - Pitch, Roll, Yaw
+        - acceleration, gyro, and magnetometer
+        - temperature
 
 ## Todo:
 
@@ -54,12 +91,39 @@ gpio.set_PWM_dutycycle(19, 64)  #0-255, so 64 is 1/4 duty cycle
 ```
 Be sure to run sudo pigpiod to start the daemon before you run this script.
 
-## Launch fastAPI app:
-```
-cd ~/overkill/backend/src
-uvicorn main:app --host 0.0.0.0 --reload
-```
-
 ## Bluetooth stuff
 
 ble service database https://github.com/NordicSemiconductor/bluetooth-numbers-database 
+
+## Install
+
+### Install adafruit blinka support:
+```
+sudo pip install --upgrade adafruit-python-shell
+wget https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/master/raspi-blinka.py
+sudo python raspi-blinka.py
+```
+
+install usb MCP2221 support:
+```
+sudo apt-get install libusb-1.0 libudev-dev
+```
+
+### Assisted GPS:
+
+need to load an EPO file 
+
+look at https://github.com/gtjoseph/mt3339-utils 
+
+### Prior Art
+- pizero_bikecomputer: https://github.com/hishizuka/pizero_bikecomputer
+
+### Useful Links:
+- Develop with QWIIC modules on macOS: https://learn.adafruit.com/circuitpython-libraries-on-any-computer-with-mcp2221 
+- Mapping:
+    - Offline leaflet maps https://github.com/allartk/leaflet.offline 
+    - GPX layered on to Leaflet map: https://github.com/mpetazzoni/leaflet-gpx 
+- BLE:
+    - https://github.com/zacharyedwardbull/pycycling
+- ANT:
+    - https://github.com/Tigge/openant

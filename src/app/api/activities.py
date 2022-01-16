@@ -1,5 +1,4 @@
 from typing import List
-
 from fastapi import APIRouter, HTTPException, Path
 
 from app.api import activity_crud as crud
@@ -28,7 +27,6 @@ async def create_activity():
         raise HTTPException(status_code=404, detail="activity not found")
     return activity
 
-
 @router.get("/{id}/", response_model=ActivityDB)
 async def read_activity(id: int = Path(..., gt=0),):
     activity = await crud.get(id)
@@ -36,11 +34,9 @@ async def read_activity(id: int = Path(..., gt=0),):
         raise HTTPException(status_code=404, detail="activity not found")
     return activity
 
-
 @router.get("/", response_model=List[ActivityDB])
 async def read_all_activities():
     return await crud.get_all()
-
 
 @router.put("/{id}/", response_model=ActivityDB)
 async def update_activity(payload: ActivitySchema, id: int = Path(..., gt=0),):
@@ -57,7 +53,6 @@ async def update_activity(payload: ActivitySchema, id: int = Path(..., gt=0),):
         "end_time": payload.end_time,
     }
     return response_object
-
 
 @router.delete("/{id}/", response_model=ActivityDB)
 async def delete_activity(id: int = Path(..., gt=0)):

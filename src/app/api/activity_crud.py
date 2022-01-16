@@ -1,6 +1,15 @@
 from app.api.models import ActivitySchema
-from app.db import activities, database
+from app.db import activities, database, SessionLocal
 from datetime import datetime, timezone
+from sqlalchemy.orm import Session  # type: ignore
+from sqlalchemy.exc import IntegrityError
+
+def get_session():
+    session = SessionLocal()
+    try:
+        session
+    finally:
+        session.close()
 
 async def post():
     #first set all other activities to inactive
@@ -24,7 +33,6 @@ async def stop_current():
     query = activities.select().where(current_activity['id'] == activities.c.id)
     return await database.fetch_one(query=query)
 
-
 async def get(id: int):
     query = activities.select().where(id == activities.c.id)
     return await database.fetch_one(query=query)
@@ -38,7 +46,6 @@ async def get_all():
     query = activities.select()
     return await database.fetch_all(query=query)
 
-
 async def put(id: int, payload: ActivitySchema):
     query = (
         activities
@@ -49,7 +56,14 @@ async def put(id: int, payload: ActivitySchema):
     )
     return await database.execute(query=query)
 
-
 async def delete(id: int):
     query = activities.delete().where(id == activities.c.id)
     return await database.execute(query=query)
+
+def get_current_sync() -> ActivitySchema:
+    # Todo: make sure we have at least one activity
+    session = get_session()
+    activity = session.query(ActivitySchema).filter(ActivitySchema.is_active == True).first()
+    if activity is None:
+        activity = session.query(ActivitySchema).order_by(ActivitySchema.activity_id.desc()).first()
+    return activity

@@ -1,13 +1,16 @@
 from fastapi import FastAPI
-import asyncio
+import asyncio, os, threading
 from app.api import activities, ping, sensors
 from app.db import database, engine, metadata
 from app.ble import sensor as ble
+from app.location import gps
 
 metadata.create_all(engine)
 
 app = FastAPI()
-
+gps_stop_event = threading.Event()
+os.environ["PYTHONASYNCIODEBUG"] = str(1)
+location = gps.Location()
 
 @app.on_event("startup")
 async def startup():
@@ -16,7 +19,7 @@ async def startup():
     addresses = ["F0:99:19:59:B4:00"] # Addresses of the BLE devices to connect to.
     loop = asyncio.get_event_loop() # should return the loop fastapi is already using
     # # Launch asyncio executor for GPS monitoring
-    # gps_mon_loop = loop.run_in_executor(None, location.monitor_gps, gps_stop_event)
+    gps_mon_loop = loop.run_in_executor(None, location.monitor_gps, gps_stop_event)
     # Launch asyncio tasks for each ble device
     for address in addresses:
         asyncio.create_task(ble.connect_to_device(address, loop, recording_interval=5))
@@ -26,10 +29,9 @@ async def startup():
 async def shutdown():
     print("Shutting down")
     await database.disconnect()
-    # gps_stop_event.set() # send event to stop GPS loop
-    # for task in asyncio.all_tasks():
-    #     task.cancel() # cancel all tasks
-
+    gps_stop_event.set() # send event to stop GPS loop
+    for task in asyncio.all_tasks():
+        task.cancel() # cancel all tasks
 
 app.include_router(ping.router)
 app.include_router(activities.router, prefix="/activities", tags=["activities"])
