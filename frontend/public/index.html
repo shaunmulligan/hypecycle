@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <meta charset='utf-8'>
+
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <!-- add to homescreen for ios    -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+    <title>Ionic Companion</title>
+    <meta name="description" content="A developer's companion app to Ionic greatness powered by svelte">
+    <meta name="og:title" property="og:title" content="Ionic Companion">
+    <meta name="og:description" property="og:description" content="A developer's companion app to Ionic greatness, powered by svelte">
+    <meta name="robots" content="index, follow">
+
+    <link rel='icon' type='image/png' href='/favicon.png'>
+    <link rel="icon" type="image/png" href="/favicon.png" sizes="16x16" />
+    <link rel="icon" type="image/png" href="/favicon.png" sizes="32x32" />
+    <link rel="icon" type="image/png" href="/favicon.png" sizes="192x192" />
+
+    <link rel="apple-touch-icon" href="/favicon.png" sizes="180x180" />
+
+    <link rel='stylesheet' href='/global.css'>
+    <link rel='stylesheet' href='/bundle/bundle.css'>
+
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#1976d2" />
+
+    <script defer type="module" src='/bundle/main.js'></script>
+
+    <script type="module" src="/ionic/ionic.esm.js"></script>
+    <script nomodule src="/ionic/ionic.js"></script>
+    <link rel="stylesheet" href="/ionic.bundle.css" />
+
+    <script>
+        if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(function(registration) {
+                        // Successful registration
+                        console.log('Hooray. Registration successful, scope is:', registration.scope);
+                    }).catch(function(err) {
+                        // Failed registration, service worker won’t be installed
+                        console.log('Whoops. Service worker registration failed, error:', error);
+                    });
+            }
+
+        } else {
+            console.log('Running localhost - no service worker registered')
+        }
+    </script>
+
+</head>
+
+<body>
+    <noscript>Please enable JavaScript to continue using this application.</noscript>
+</body>
+
+</html>
