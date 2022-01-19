@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import asyncio, os, threading
 from app.api import activities, ping, sensors
 from app.api import data_routes as data
@@ -9,6 +10,15 @@ from app.location import gps
 metadata.create_all(engine)
 
 app = FastAPI()
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 gps_stop_event = threading.Event()
 os.environ["PYTHONASYNCIODEBUG"] = str(1)
 location = gps.Location()
