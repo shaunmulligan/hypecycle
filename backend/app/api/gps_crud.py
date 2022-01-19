@@ -17,5 +17,4 @@ async def get_last_location():
     # Get the last location of an activity
     sel_query = gps_readings.select().order_by(gps_readings.c.id.desc()).limit(10)
     rec = await database.fetch_one(query=sel_query)
-    print(rec)
     return rec

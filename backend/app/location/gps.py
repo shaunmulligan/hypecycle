@@ -11,7 +11,7 @@ except RuntimeError as e:
     print("GPS not available: {}".format(e))
     sys.exit(1)
 
-UPDATE_RATE = os.environ.get('UPDATE_RATE', 5)
+UPDATE_RATE = os.environ.get('UPDATE_RATE', 1)
 
 def format_dop(dop):
     # https://en.wikipedia.org/wiki/Dilution_of_precision_(navigation)
@@ -62,7 +62,7 @@ class Location:
         # Turn on everything (not all of it is parsed!)
         self.gps.send_command(b"PMTK314,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
         # Set update rate to once a second (1hz) which is what you typically want.
-        self.gps.send_command(b"PMTK220,10000")
+        self.gps.send_command(b"PMTK220,1000")
     
     def get(self):
         '''Getter for the location attributes'''
@@ -120,7 +120,7 @@ class Location:
                                 latitude=self.gps.latitude,
                                 longitude=self.gps.longitude,
                                 timestamp=datetime.datetime.now(),
-                                speed=self.gps.speed_knots*1.852,
+                                speed= self.gps.speed_knots*1.852 if self.gps.speed_knots is not None else 0,
                                 altitude=self.gps.altitude_m,
                             )
                             self.connection.execute(query)
