@@ -1,9 +1,11 @@
 from fastapi import APIRouter
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import WebSocket, WebSocketDisconnect
 import asyncio
+from datetime import datetime, timezone
 
 from app.api import gps_crud
 from app.api import readings_crud
+from app.api import activity_crud
 
 router = APIRouter()
 
@@ -36,13 +38,15 @@ async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
+            activity = await activity_crud.get_current()
             location = await gps_crud.get_last_location()
             hr = await readings_crud.get_last_hr()
+
             await websocket.send_json(
                 {"heartrate": hr["bpm"],
                  "speed": round(location["speed"], 2),
                  "power": 201,
-                 "elapsedTime": 123,
+                 "elapsedTime": int((datetime.now(timezone.utc) - activity["start_time"]).total_seconds()) if activity else 0,
                  "avgSpeed": 20.3,
                  "cadence": 80,
                  "latitude": location["latitude"],
